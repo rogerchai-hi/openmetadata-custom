@@ -1,8 +1,13 @@
-test_api/
+#test_api/
 #poetry
 poetry.lock
 #keys
 .env
-#執行檔
-*.cmd
-*.bat
+#build
+dist/*
+#develop
+develop/*
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[codz]
+*$py.class

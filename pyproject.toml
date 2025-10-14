@@ -1,17 +1,19 @@
-[project]
-name = "om-testing"
+[tool.poetry]
+name = "metadata"
 version = "0.1.0"
 description = ""
-authors = [
-    {name = "rogerchai@kpmg.com.tw"}
-]
-readme = "README.md"
-requires-python = ">=3.10,<4.0"
-dependencies = [
-    "openmetadata-ingestion (>=1.9.5.0,<1.10.0.0)",
-    "evidently (>=0.7.14,<0.8.0)"
-]
+authors = ["rogerchai-hi <rogerchai@kpmg.com.tw>"]
+packages = [{ include = "metadata" }]
+license = "Collate Community License Agreement-1.0"
 
+[tool.poetry.dependencies]
+python = "^3.10"
+openmetadata-ingestion = "1.9.4.0"
+evidently = "^0.7.14"
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^7.0.0"
+psycopg2 = "^2.9.11"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

@@ -1,0 +1,13 @@
+{
+    "description": "A custom datadrift test",
+    "entityType": "COLUMN",
+    "name": "datadrift test",
+    "testPlatforms": ["OpenMetadata"],
+    "parameterDefinition": [
+        {
+            "name": "DateColumn",
+            "required": true,
+            "dataType": "STRING"
+        }
+    ]
+}

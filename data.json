@@ -1,9 +1,0 @@
-{
-    "description": "A demo custom test",
-    "entityType": "TABLE",
-    "name": "demo_test_definition",
-    "testPlatforms": ["OpenMetadata"],
-    "parameterDefinition": [{
-        "name": "ColumnOne"
-    }]
-}
