@@ -1,0 +1,8 @@
+test_api/
+#poetry
+poetry.lock
+#keys
+.env
+#執行檔
+*.cmd
+*.bat
