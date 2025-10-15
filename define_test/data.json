@@ -1,8 +1,13 @@
 {
-    "description": "A custom datadrift test",
+    "description": "datadrift test using evidently",
     "entityType": "COLUMN",
-    "name": "datadrift test",
+    "displayName": "Column Data Drift",
+    "name": "datadrift",
     "testPlatforms": ["OpenMetadata"],
+    "supportedDataTypes": [
+        "NUMBER", "INT", "FLOAT", "DOUBLE", "DECIMAL",
+        "TINYINT", "SMALLINT", "BIGINT", "BYTEINT"
+    ],
     "parameterDefinition": [
         {
             "name": "DateColumn",

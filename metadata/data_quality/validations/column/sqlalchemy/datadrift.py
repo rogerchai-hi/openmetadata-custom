@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from metadata.profiler.processor.runner import QueryRunner
 
 
-class ColumnDataDriftValidator(BaseTestValidator):
+class DatadriftValidator(BaseTestValidator):
 
     def _report_output_2_test_case_result(self, snapshot: "Snapshot") -> TestCaseResult:
         payload = snapshot.dict()
