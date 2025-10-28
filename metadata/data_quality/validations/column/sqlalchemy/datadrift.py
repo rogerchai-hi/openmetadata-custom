@@ -43,7 +43,7 @@ class DatadriftValidator(BaseTestValidator):
     def run_validation(self) -> TestCaseResult:
         self.runner = cast("QueryRunner", self.runner)
         target_column_name = get_decoded_column(self.test_case.entityLink.root)
-        target_column = inspect(self.runner.table).c.get("injury_count") # pyright: ignore[reportOptionalMemberAccess]
+        target_column = inspect(self.runner.table).c.get(target_column_name) # pyright: ignore[reportOptionalMemberAccess]
 
         date_column_name = self.get_test_case_param_value(
             self.test_case.parameterValues, # pyright: ignore[reportArgumentType]
