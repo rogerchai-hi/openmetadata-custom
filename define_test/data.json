@@ -13,6 +13,11 @@
             "name": "DateColumn",
             "required": true,
             "dataType": "STRING"
+        },
+        {
+            "name": "BaselineValue",
+            "required": false,
+            "dataType": "STRING"
         }
     ]
 }

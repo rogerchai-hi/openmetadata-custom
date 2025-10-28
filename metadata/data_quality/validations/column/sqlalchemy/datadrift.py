@@ -1,6 +1,7 @@
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Optional, TypeAlias, cast
 
 import pandas as pd
+from dateutil import parser
 from evidently import Report
 from evidently.legacy.tests.base_test import TestStatus
 from evidently.metrics import ValueDrift
@@ -9,12 +10,15 @@ from metadata.data_quality.validations.base_test_handler import \
 from metadata.generated.schema.tests.basic import (TestCaseResult,
                                                    TestResultValue)
 from metadata.utils.entity_link import get_decoded_column
-from sqlalchemy import inspect
+from sqlalchemy import inspect, select
 
 if TYPE_CHECKING:
+    from datetime import date, datetime
+
     from evidently.core.report import Snapshot
     from metadata.profiler.processor.runner import QueryRunner
-
+    from sqlalchemy import Column, Table
+    SupportedColType: TypeAlias = int | str | date | datetime
 
 class DatadriftValidator(BaseTestValidator):
 
@@ -39,31 +43,64 @@ class DatadriftValidator(BaseTestValidator):
     def run_validation(self) -> TestCaseResult:
         self.runner = cast("QueryRunner", self.runner)
         target_column_name = get_decoded_column(self.test_case.entityLink.root)
+        target_column = inspect(self.runner.table).c.get("injury_count") # pyright: ignore[reportOptionalMemberAccess]
 
         date_column_name = self.get_test_case_param_value(
             self.test_case.parameterValues, # pyright: ignore[reportArgumentType]
             "DateColumn",
             str,
         )
-        # TODO: validation
-        columns_name = [target_column_name, date_column_name]
-        columns = [x for x in inspect(self.runner.table).c if x.name in columns_name] # pyright: ignore[reportOptionalMemberAccess]
+        date_column_name = cast(str, date_column_name)
+        # assert date_column_name is not None
+        date_column = inspect(self.runner.table).c.get(date_column_name) # pyright: ignore[reportOptionalMemberAccess]
+        if date_column is None:
+            raise ValueError(f"columnn {date_column_name} doesn't exists!")
 
-        rows = self.runner.select_all_from_table(*columns)
-        df = pd.DataFrame(rows, columns=[col.name for col in columns])
-        df = df.reindex(columns = columns_name)
+        baseline_value = self.get_test_case_param_value(
+            self.test_case.parameterValues, # pyright: ignore[reportArgumentType]
+            "BaselineValue",
+            str,
+            default = None
+        )
+        baseline_value = cast(Optional[str], baseline_value)
 
-        dates = df[date_column_name].drop_duplicates().sort_values(ascending=False)
-        if len(dates) < 2:
-            raise ValueError("there should be at least two data dates to calculate data drift.")
-
-        df_cur = df[df[date_column_name] == dates.iloc[1]]
-        df_ref = df[df[date_column_name] == dates.iloc[0]]
-
+        dt_cur, dt_ref = self.get_cond_for_comparison(date_column,
+                                                      baseline_value)
+        # df_cur
+        stmt = select(target_column).where(date_column == dt_cur)
+        rows = self.runner.session.execute(stmt).all()
+        df_cur = pd.DataFrame(rows)
+        # df_ref
+        stmt = select(target_column).where(date_column == dt_ref)
+        rows = self.runner.session.execute(stmt).all()
+        df_ref = pd.DataFrame(rows)
+        # report
         report = Report(metrics=[ValueDrift(column=target_column_name)], include_tests=True)
         output = report.run(reference_data=df_ref, current_data=df_cur)
 
         return self._report_output_2_test_case_result(output)
 
-
-
+    def get_cond_for_comparison(self,
+                                date_column: "Column",
+                                baseline_value: Optional[str] = None) -> tuple["SupportedColType", "SupportedColType"]:
+        stmt = select(date_column).distinct().order_by(date_column.desc())
+        dates = [x[0] for x in self.runner.session.execute(stmt).all()]
+        if baseline_value is None:
+            if len(dates) == 1:
+                return dates[0], dates[0]
+            return dates[0], dates[1]
+        date_col_type = date_column.type.python_type.__name__ # pyright: ignore[reportAttributeAccessIssue] TODO
+        match date_col_type:
+            case "int":
+                baseline_value = int(baseline_value) # pyright: ignore[reportAssignmentType]
+            case "str":
+                pass
+            case "date":
+                baseline_value = parser.parse(baseline_value).date() # pyright: ignore[reportAssignmentType]
+            case "datetime":
+                baseline_value = parser.parse(baseline_value) # pyright: ignore[reportAssignmentType]
+            case _:
+                raise RuntimeError("not supposed to be reached!")
+        if baseline_value not in dates:
+            raise ValueError(f"baseline_value {baseline_value} doesn't exists!")
+        return dates[0], baseline_value # pyright: ignore[reportReturnType]

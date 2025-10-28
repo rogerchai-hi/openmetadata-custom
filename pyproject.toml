@@ -1,20 +1,26 @@
 [tool.poetry]
 name = "metadata"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["rogerchai-hi <rogerchai@kpmg.com.tw>"]
 packages = [{ include = "metadata" }]
 license = "Collate Community License Agreement-1.0"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = ">=3.10,<3.13"
 openmetadata-ingestion = "1.9.8.0"
-evidently = "^0.4.16"
+evidently = {git = "https://github.com/rogerchai-hi/evidently-datadrift.git"}
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^7.0.0"
 psycopg2 = "^2.9.11"
 python-dotenv = "^1.1.1"
+
+[tool.poetry.group.constraints.dependencies]
+cryptography = "42.0.8"
+fsspec = "2023.12.2"
+pyopenssl = "24.1.0"
+ujson = ">=5.4.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

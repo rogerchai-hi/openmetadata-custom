@@ -2,12 +2,15 @@
 #poetry
 poetry.lock
 #keys
-.env
+*.env
 #build
 dist/*
 #develop
-develop/*
+develop/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
 *$py.class
+# docker
+docker-volume/
+archived/
