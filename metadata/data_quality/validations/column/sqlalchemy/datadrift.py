@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
     from evidently.core.report import Snapshot
     from metadata.profiler.processor.runner import QueryRunner
-    from sqlalchemy import Column, Table
+    from sqlalchemy import Column
     SupportedColType: TypeAlias = int | str | date | datetime
 
 class DatadriftValidator(BaseTestValidator):
