@@ -1,3 +1,5 @@
+import time
+from functools import cached_property
 from typing import TYPE_CHECKING, Optional, TypeAlias, cast
 
 import pandas as pd
@@ -22,6 +24,13 @@ if TYPE_CHECKING:
 
 class DatadriftValidator(BaseTestValidator):
 
+    @cached_property
+    def report_name(self):
+        ts = int(time.time())
+        test_name = self.test_case.name.root
+
+        return f"{test_name}_{ts}"
+
     def _report_output_2_test_case_result(self, snapshot: "Snapshot") -> TestCaseResult:
         payload = snapshot.dict()
         def is_passed(status: TestStatus) -> bool:
@@ -37,8 +46,21 @@ class DatadriftValidator(BaseTestValidator):
             result = result,
             test_result_value = [TestResultValue(name="metric_value",
                                                  value=metric_value,
-                                                 predictedValue=None)],
+                                                 predictedValue=None),
+                                 TestResultValue(name="description",
+                                                 value=self._get_description(),
+                                                 predictedValue=None),
+            ],
         )
+
+    def _get_description(self) -> str:
+        if self.test_case.description:
+            des = self.test_case.description.root
+        else:
+             des = ""
+        return f'<p><a target="_blank" rel="noopener noreferrer" href="/reports/{self.report_name}">報告連結</a></p>{des}'
+        # return f'<p><a target="_blank" rel="noopener noreferrer" href="http://localhost:81/reports/{self.report_name}">報告連結</a></p>{des}'
+        #return f"/reports/{self.report_name}"
 
     def run_validation(self) -> TestCaseResult:
         self.runner = cast("QueryRunner", self.runner)
@@ -77,6 +99,8 @@ class DatadriftValidator(BaseTestValidator):
         # report
         report = Report(metrics=[ValueDrift(column=target_column_name)], include_tests=True)
         output = report.run(reference_data=df_ref, current_data=df_cur)
+
+        output.save_html(f"/tmp/datadrift_report/{self.report_name}.html")
 
         return self._report_output_2_test_case_result(output)
 

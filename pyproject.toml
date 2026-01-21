@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "metadata"
-version = "0.2.0"
+version = "0.3.0a2"
 description = ""
 authors = ["rogerchai-hi <rogerchai@kpmg.com.tw>"]
 packages = [{ include = "metadata" }]
@@ -10,6 +10,7 @@ license = "Collate Community License Agreement-1.0"
 python = ">=3.10,<3.13"
 openmetadata-ingestion = "1.9.8.0"
 evidently = {git = "https://github.com/rogerchai-hi/evidently-datadrift.git"}
+beautifulsoup4 = "4.13.0"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^7.0.0"
