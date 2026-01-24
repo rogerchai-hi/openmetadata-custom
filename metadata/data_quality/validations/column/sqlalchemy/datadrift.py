@@ -1,8 +1,10 @@
+import sqlite3
 import time
 from functools import cached_property
 from typing import TYPE_CHECKING, Optional, TypeAlias, cast
 
 import pandas as pd
+from bs4 import BeautifulSoup
 from dateutil import parser
 from evidently import Report
 from evidently.legacy.tests.base_test import TestStatus
@@ -53,11 +55,22 @@ class DatadriftValidator(BaseTestValidator):
             ],
         )
 
-    def _get_description(self) -> str:
+    def _get_description(self, max_report: int=5) -> str:
         if self.test_case.description:
             des = self.test_case.description.root
         else:
              des = ""
+
+        # sep = ""
+        # des.split(sep)
+        soup = BeautifulSoup(des, "html.parser")
+        report_links = soup.find_all(lambda tag: tag.name == "a" and
+                                                 tag.has_attr("href") and
+                                                 tag["href"].startswith("/reports/") # pyright: ignore[reportAttributeAccessIssue]
+        )
+        report_links = report_links[:max_report]
+
+
         return f'<p><a target="_blank" rel="noopener noreferrer" href="/reports/{self.report_name}">報告連結</a></p>{des}'
         # return f'<p><a target="_blank" rel="noopener noreferrer" href="http://localhost:81/reports/{self.report_name}">報告連結</a></p>{des}'
         #return f"/reports/{self.report_name}"
