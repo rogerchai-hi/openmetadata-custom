@@ -1,6 +1,7 @@
 import sqlite3
 import time
 from functools import cached_property
+from pathlib import Path
 from typing import TYPE_CHECKING, Optional, TypeAlias, cast
 
 import pandas as pd
@@ -25,6 +26,8 @@ if TYPE_CHECKING:
     SupportedColType: TypeAlias = int | str | date | datetime
 
 class DatadriftValidator(BaseTestValidator):
+    report_dir = Path("/tmp/datadrift_report")
+    max_report = 5
 
     @cached_property
     def report_name(self):
@@ -55,7 +58,39 @@ class DatadriftValidator(BaseTestValidator):
             ],
         )
 
-    def _get_description(self, max_report: int=5) -> str:
+    def _house_keeping(self):
+        with sqlite3.connect(str(self.report_dir / "report_catalog.db")) as conn:
+            cursor = conn.cursor()
+            # 寫入本次報告
+            cursor.execute(
+                f"""
+                INSERT INTO report_catalog(test_case, file_name)
+                VALUES ('{self.test_case.name.root}', '{self.report_name}')
+                """
+            )
+            # 讀取報告清單
+            cursor.execute(
+                f"""
+                SELECT file_name, id
+                FROM report_catalog
+                WHERE test_case = '{self.test_case.name.root}' AND is_deleted = 0
+                ORDER BY created_at DESC
+                """
+            )
+            rows = cursor.fetchall()
+            # 刪除過早報告
+            for file_name, file_id in rows[self.max_report:]:
+                (self.report_dir / file_name / "").with_suffix(".html").unlink(missing_ok=True)
+                cursor.execute(
+                    f"""
+                    UPDATE report_catalog
+                    SET is_deleted = 1
+                    WHERE id = {file_id}
+                    """
+                )
+            conn.commit()
+
+    def _get_description(self) -> str:
         if self.test_case.description:
             des = self.test_case.description.root
         else:
@@ -68,7 +103,7 @@ class DatadriftValidator(BaseTestValidator):
                                                  tag.has_attr("href") and
                                                  tag["href"].startswith("/reports/") # pyright: ignore[reportAttributeAccessIssue]
         )
-        report_links = report_links[:max_report]
+        report_links = report_links[:self.max_report]
 
 
         return f'<p><a target="_blank" rel="noopener noreferrer" href="/reports/{self.report_name}">報告連結</a></p>{des}'
@@ -113,7 +148,7 @@ class DatadriftValidator(BaseTestValidator):
         report = Report(metrics=[ValueDrift(column=target_column_name)], include_tests=True)
         output = report.run(reference_data=df_ref, current_data=df_cur)
 
-        output.save_html(f"/tmp/datadrift_report/{self.report_name}.html")
+        output.save_html(str(self.report_dir / f"{self.report_name}.html"))
 
         return self._report_output_2_test_case_result(output)
 
