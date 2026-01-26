@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Optional, TypeAlias, cast
 
 import pandas as pd
-from bs4 import BeautifulSoup
 from dateutil import parser
 from evidently import Report
 from evidently.legacy.tests.base_test import TestStatus
@@ -26,7 +25,7 @@ if TYPE_CHECKING:
     SupportedColType: TypeAlias = int | str | date | datetime
 
 class DatadriftValidator(BaseTestValidator):
-    report_dir = Path("/tmp/datadrift_report")
+    report_dir = Path("/datadrift_report")
     max_report = 5
 
     @cached_property
@@ -96,19 +95,25 @@ class DatadriftValidator(BaseTestValidator):
         else:
              des = ""
 
-        # sep = ""
-        # des.split(sep)
-        soup = BeautifulSoup(des, "html.parser")
-        report_links = soup.find_all(lambda tag: tag.name == "a" and
-                                                 tag.has_attr("href") and
-                                                 tag["href"].startswith("/reports/") # pyright: ignore[reportAttributeAccessIssue]
-        )
-        report_links = report_links[:self.max_report]
+        sep = "<p><==========以下為程式自動產生，請勿修改==========></p>"
+        des = des.split(sep)[0]
+        with sqlite3.connect(str(self.report_dir / "report_catalog.db")) as conn:
+            cursor = conn.cursor()
+             # 讀取報告清單
+            cursor.execute(
+                f"""
+                SELECT file_name, created_at
+                FROM report_catalog
+                WHERE test_case = '{self.test_case.name.root}' AND is_deleted = 0
+                ORDER BY created_at DESC
+                """
+            )
+            rows = cursor.fetchall()
+        rows = [f'<p><a target="_blank" rel="noopener noreferrer" href="/reports/{file_name}">報告連結-{created_at}</a></p>' for file_name, created_at in rows]
+        rows.insert(1, "<p>===========================================</p>")
+        des = des + sep + "".join(rows)
 
-
-        return f'<p><a target="_blank" rel="noopener noreferrer" href="/reports/{self.report_name}">報告連結</a></p>{des}'
-        # return f'<p><a target="_blank" rel="noopener noreferrer" href="http://localhost:81/reports/{self.report_name}">報告連結</a></p>{des}'
-        #return f"/reports/{self.report_name}"
+        return des
 
     def run_validation(self) -> TestCaseResult:
         self.runner = cast("QueryRunner", self.runner)
@@ -150,6 +155,7 @@ class DatadriftValidator(BaseTestValidator):
 
         output.save_html(str(self.report_dir / f"{self.report_name}.html"))
 
+        self._house_keeping()
         return self._report_output_2_test_case_result(output)
 
     def get_cond_for_comparison(self,

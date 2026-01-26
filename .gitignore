@@ -7,6 +7,8 @@ poetry.lock
 dist/*
 #develop
 develop/
+.vscode/
+wheels/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

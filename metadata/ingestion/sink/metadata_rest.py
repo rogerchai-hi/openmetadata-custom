@@ -44,8 +44,8 @@ from metadata.generated.schema.entity.datacontract.dataContractResult import \
 from metadata.generated.schema.entity.teams.role import Role
 from metadata.generated.schema.entity.teams.team import Team
 from metadata.generated.schema.entity.teams.user import User
-from metadata.generated.schema.tests.basic import TestCaseResult  # 20260121
-from metadata.generated.schema.tests.basic import TestResultValue
+from metadata.generated.schema.tests.basic import (TestCaseResult,  # 20260121
+                                                   TestResultValue)
 from metadata.generated.schema.tests.testCase import TestCase
 from metadata.generated.schema.tests.testCaseResolutionStatus import \
     TestCaseResolutionStatus

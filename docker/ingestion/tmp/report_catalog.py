@@ -18,7 +18,7 @@ def main():
 
     metadata.create_all(engine)
 
-    print("finished")
+    print("report_catalog successfully created!")
 
 if __name__ == "__main__":
     main()

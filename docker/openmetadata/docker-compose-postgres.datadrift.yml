@@ -1,0 +1,37 @@
+version: "3.9"
+volumes:
+  ingestion-volume-reports:
+services:
+  ingestion:
+    image: openmetadata_ingestion:1.9.8-datadrift1
+    volumes:
+      - ingestion-volume-reports:/datadrift_report
+
+  nginx:
+    container_name: openmetadata_nginx
+    image: openmetadata_nginx:1.9.8
+    restart: always
+    depends_on:
+      openmetadata-server:
+        condition: service_healthy
+    expose:
+      - 80
+    ports:
+      - "81:80"
+    networks:
+      - app_net
+    volumes:
+      - ingestion-volume-reports:/usr/share/nginx/html/reports/datadrift_report:ro
+
+  define-test-case:
+    container_name: define_test_case
+    image: openmetadata_ingestion:1.9.8-datadrift1
+    command: "python /tmp/define_test_case.py"
+    environment:
+      OM_ADMIN_EMAIL: "admin@open-metadata.org"
+      OM_ADMIN_PWD: "admin"
+    depends_on:
+      openmetadata-server:
+        condition: service_healthy
+    networks:
+      - app_net
