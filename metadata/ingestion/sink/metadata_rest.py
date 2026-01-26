@@ -44,8 +44,8 @@ from metadata.generated.schema.entity.datacontract.dataContractResult import \
 from metadata.generated.schema.entity.teams.role import Role
 from metadata.generated.schema.entity.teams.team import Team
 from metadata.generated.schema.entity.teams.user import User
-from metadata.generated.schema.tests.basic import (TestCaseResult,  # 20260121
-                                                   TestResultValue)
+from metadata.generated.schema.tests.basic import TestCaseResult  # 20260121
+# from metadata.generated.schema.tests.basic import TestResultValue
 from metadata.generated.schema.tests.testCase import TestCase
 from metadata.generated.schema.tests.testCaseResolutionStatus import \
     TestCaseResolutionStatus
@@ -516,10 +516,16 @@ class MetadataRestSink(Sink):  # pylint: disable=too-many-public-methods
     def write_test_case_results(self, record: TestCaseResultResponse):
         """Write the test case result"""
         # 20260121 start
-        if record.testCaseResult.testResultValue:
-            record.testCaseResult.testResultValue.append(TestResultValue(name="test",
-                                                 value=100,
-                                                 predictedValue=None))
+        result_vals = []
+        for i in record.testCaseResult.testResultValue:
+            if i.name == "description":
+                self.metadata.patch_description(entity = TestCase,
+                                                source = record.testCase,
+                                                description = i.value,
+                                                force = True)
+            else:
+                result_vals.append(i)
+        record.testCaseResult.testResultValue = result_vals
         # 20260121 end
         res = self.metadata.add_test_case_results(
             test_results=record.testCaseResult,
@@ -693,10 +699,6 @@ class MetadataRestSink(Sink):  # pylint: disable=too-many-public-methods
 
 
             result.testCaseResult.testResultValue = result_vals
-            # if result.testCaseResult.testResultValue:
-            #     result.testCaseResult.testResultValue.append(TestResultValue(name="test",
-            #                                         value="100",
-            #                                         predictedValue=None))
             # 20260121 end
             self.metadata.add_test_case_results(
                 test_results=result.testCaseResult,

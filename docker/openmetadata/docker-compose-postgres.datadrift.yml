@@ -4,6 +4,8 @@ volumes:
 services:
   ingestion:
     image: openmetadata_ingestion:1.9.8-datadrift1
+    environment:
+      REPORT_TIMEZONE: "Asia/Taipei"
     volumes:
       - ingestion-volume-reports:/datadrift_report
 

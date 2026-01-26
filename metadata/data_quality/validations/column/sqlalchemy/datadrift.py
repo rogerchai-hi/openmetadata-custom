@@ -1,8 +1,10 @@
+import os
 import sqlite3
-import time
+from datetime import datetime
 from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional, TypeAlias, cast
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 from dateutil import parser
@@ -30,7 +32,7 @@ class DatadriftValidator(BaseTestValidator):
 
     @cached_property
     def report_name(self):
-        ts = int(time.time())
+        ts = self.execution_date.root // 1000
         test_name = self.test_case.name.root
 
         return f"{test_name}_{ts}"
@@ -58,14 +60,22 @@ class DatadriftValidator(BaseTestValidator):
         )
 
     def _house_keeping(self):
+        ts = self.execution_date.root // 1000  # 執行時間
+        time_zone = os.environ.get("REPORT_TIMEZONE", "UTC")
+        dt = datetime.fromtimestamp(ts).astimezone(ZoneInfo(time_zone))
         with sqlite3.connect(str(self.report_dir / "report_catalog.db")) as conn:
             cursor = conn.cursor()
             # 寫入本次報告
             cursor.execute(
-                f"""
-                INSERT INTO report_catalog(test_case, file_name)
-                VALUES ('{self.test_case.name.root}', '{self.report_name}')
                 """
+                INSERT INTO report_catalog(test_case, file_name, created_at)
+                VALUES (?, ?, ?)
+                """,
+                (
+                    self.test_case.name.root,
+                    self.report_name,
+                    dt.strftime("%Y-%m-%d %H:%M:%S"),
+                )
             )
             # 讀取報告清單
             cursor.execute(
