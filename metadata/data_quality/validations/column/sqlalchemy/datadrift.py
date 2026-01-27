@@ -59,7 +59,7 @@ class DatadriftValidator(BaseTestValidator):
             ],
         )
 
-    def _house_keeping(self):
+    def _housekeeping(self):
         ts = self.execution_date.root // 1000  # 執行時間
         time_zone = os.environ.get("REPORT_TIMEZONE", "UTC")
         dt = datetime.fromtimestamp(ts).astimezone(ZoneInfo(time_zone))
@@ -165,7 +165,7 @@ class DatadriftValidator(BaseTestValidator):
 
         output.save_html(str(self.report_dir / f"{self.report_name}.html"))
 
-        self._house_keeping()
+        self._housekeeping()
         return self._report_output_2_test_case_result(output)
 
     def get_cond_for_comparison(self,
