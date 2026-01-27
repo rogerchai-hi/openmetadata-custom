@@ -44,7 +44,7 @@ from metadata.generated.schema.entity.datacontract.dataContractResult import \
 from metadata.generated.schema.entity.teams.role import Role
 from metadata.generated.schema.entity.teams.team import Team
 from metadata.generated.schema.entity.teams.user import User
-from metadata.generated.schema.tests.basic import TestCaseResult  # 20260121
+from metadata.generated.schema.tests.basic import TestCaseResult  # modified
 # from metadata.generated.schema.tests.basic import TestResultValue
 from metadata.generated.schema.tests.testCase import TestCase
 from metadata.generated.schema.tests.testCaseResolutionStatus import \
@@ -515,7 +515,7 @@ class MetadataRestSink(Sink):  # pylint: disable=too-many-public-methods
     @_run_dispatch.register
     def write_test_case_results(self, record: TestCaseResultResponse):
         """Write the test case result"""
-        # 20260121 start
+        # modification start
         result_vals = []
         for i in record.testCaseResult.testResultValue:
             if i.name == "description":
@@ -526,7 +526,7 @@ class MetadataRestSink(Sink):  # pylint: disable=too-many-public-methods
             else:
                 result_vals.append(i)
         record.testCaseResult.testResultValue = result_vals
-        # 20260121 end
+        # modification end
         res = self.metadata.add_test_case_results(
             test_results=record.testCaseResult,
             test_case_fqn=record.testCase.fullyQualifiedName.root,
@@ -686,7 +686,7 @@ class MetadataRestSink(Sink):  # pylint: disable=too-many-public-methods
         """Record the list of test case result responses"""
 
         for result in record.test_results or []:
-            # 20260121 start
+            # modification start
             result_vals = []
             for i in result.testCaseResult.testResultValue:
                 if i.name == "description":
@@ -699,7 +699,7 @@ class MetadataRestSink(Sink):  # pylint: disable=too-many-public-methods
 
 
             result.testCaseResult.testResultValue = result_vals
-            # 20260121 end
+            # modification end
             self.metadata.add_test_case_results(
                 test_results=result.testCaseResult,
                 test_case_fqn=result.testCase.fullyQualifiedName.root,
