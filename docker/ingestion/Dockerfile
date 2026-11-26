@@ -1,4 +1,4 @@
-FROM docker.getcollate.io/openmetadata/ingestion:1.9.8 AS builder
+FROM openmetadata/ingestion:1.12.9 AS builder
 
 WORKDIR /wheels
 
@@ -7,7 +7,7 @@ COPY ./wheels .
 RUN pip wheel /wheels/evidently-0.7.15+datadrift.2-py3-none-any.whl -c /wheels/constraints.txt --wheel-dir=/wheels
 
 
-FROM docker.getcollate.io/openmetadata/ingestion:1.9.8 AS runner
+FROM openmetadata/ingestion:1.12.9 AS runner
 
 COPY --from=builder /wheels /wheels
 RUN pip install --no-cache-dir --no-deps /wheels/*.whl

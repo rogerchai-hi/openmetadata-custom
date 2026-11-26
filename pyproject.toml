@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "metadata"
-version = "0.3.1"
+version = "0.4.0"
 description = ""
 authors = ["rogerchai-hi <rogerchai@kpmg.com.tw>"]
 packages = [{ include = "metadata" }]
@@ -8,7 +8,7 @@ license = "Collate Community License Agreement-1.0"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-openmetadata-ingestion = "1.9.8.0"
+openmetadata-ingestion = "1.12.9.0"
 evidently = {git = "https://github.com/rogerchai-hi/evidently-datadrift.git"}
 
 [tool.poetry.group.dev.dependencies]

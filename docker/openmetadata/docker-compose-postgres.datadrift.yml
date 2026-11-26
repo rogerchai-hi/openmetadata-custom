@@ -7,7 +7,7 @@ volumes:
 services:
   ingestion:
     container_name: openmetadata_ingestion
-    image: openmetadata/ingestion:1.12.9  # 修正點 2：大版本核心升級至 1.12.9 以對齊 Server API
+    image: openmetadata_ingestion:1.12.9-datadrift1
     environment:
       REPORT_TIMEZONE: "Asia/Taipei"
       AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session"
@@ -36,30 +36,31 @@ services:
 
   nginx:
     container_name: openmetadata_nginx
-    image: openmetadata_nginx:1.9.8  # 100% 沿用內網您做好的 Nginx 底層鏡像
+    image: nginx:1.25-alpine
     restart: always
     depends_on:
       openmetadata-server:
         condition: service_healthy
     expose:
       - 80
-      - 443
+      #- 443
     ports:
-      - "80:80"
-      - "443:443"
+      - "81:80" ###
+      #- "443:443"
     networks:
       - app_net
     volumes:
       - ingestion-volume-reports:/usr/share/nginx/html/reports/datadrift_report:ro
       # 100% 完整繼承您的客製化安全組態與實體 SSL 密鑰證書掛載
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./ssl/openmetadata.pem:/etc/nginx/ssl/openmetadata.pem:ro
-      - ./ssl/openmetadata.key:/etc/nginx/ssl/openmetadata.key:ro
+     # - ./ssl/openmetadata.pem:/etc/nginx/ssl/openmetadata.pem:ro
+     # - ./ssl/openmetadata.key:/etc/nginx/ssl/openmetadata.key:ro
 
   define-test-case:
     container_name: define_test_case
-    image: openmetadata/ingestion:1.12.9  # 同步更新至 1.12.9 以對齊測試腳本之 API
-    command: "python /tmp/define_test_case.py"
+    image: openmetadata_ingestion:1.12.9-datadrift1  # 同步更新至 1.12.9 以對齊測試腳本之 API
+    entrypoint: []
+    command: ["python", "/tmp/datadrift_definition.py"]
     environment:
       OM_ADMIN_EMAIL: "admin@open-metadata.org"
       OM_ADMIN_PWD: "admin"

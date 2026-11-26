@@ -7,7 +7,7 @@ volumes:
 services:
   postgresql:
     container_name: openmetadata_postgresql
-    image: postgresql:1.9.8  # 純本地打好 Tag 的名稱
+    image: openmetadata/postgresql:1.12.9  # 純本地打好 Tag 的名稱
     restart: always
     command: "--work_mem=10MB"
     environment:
@@ -29,7 +29,7 @@ services:
 
   elasticsearch:
     container_name: openmetadata_elasticsearch
-    image: elasticsearch:7.16.3  # 純本地打好 Tag 的名稱
+    image: elasticsearch:9.3.0  # 純本地打好 Tag 的名稱
     environment:
       - discovery.type=single-node
       - ES_JAVA_OPTS=-Xms2048m -Xmx2048m

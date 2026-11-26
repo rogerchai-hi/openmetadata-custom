@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from datetime import datetime
+from datetime import date, datetime
 from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional, TypeAlias, cast
@@ -19,8 +19,6 @@ from metadata.utils.entity_link import get_decoded_column
 from sqlalchemy import inspect, select
 
 if TYPE_CHECKING:
-    from datetime import date, datetime
-
     from evidently.core.report import Snapshot
     from metadata.profiler.processor.runner import QueryRunner
     from sqlalchemy import Column

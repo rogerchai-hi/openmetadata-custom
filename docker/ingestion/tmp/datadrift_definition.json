@@ -1,5 +1,5 @@
 {
-    "description": "datadrift test using evidently",
+    "description": "Datadrift test using evidently",
     "entityType": "COLUMN",
     "displayName": "Column Data Drift",
     "name": "datadrift",
